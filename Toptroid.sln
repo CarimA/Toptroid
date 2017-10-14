@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.6
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toptroid", "Toptroid\Toptroid.csproj", "{C204E675-CDD4-429B-BCCC-A7BDA1F27125}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NifuuLib", "NifuuLib\NifuuLib.csproj", "{039E51EA-3D74-4E70-A150-0EA3F3A6759D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C204E675-CDD4-429B-BCCC-A7BDA1F27125}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{C204E675-CDD4-429B-BCCC-A7BDA1F27125}.Debug|x86.ActiveCfg = Debug|x86
+		{C204E675-CDD4-429B-BCCC-A7BDA1F27125}.Debug|x86.Build.0 = Debug|x86
+		{C204E675-CDD4-429B-BCCC-A7BDA1F27125}.Release|Any CPU.ActiveCfg = Release|x86
+		{C204E675-CDD4-429B-BCCC-A7BDA1F27125}.Release|x86.ActiveCfg = Release|x86
+		{C204E675-CDD4-429B-BCCC-A7BDA1F27125}.Release|x86.Build.0 = Release|x86
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Debug|x86.Build.0 = Debug|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Release|x86.ActiveCfg = Release|Any CPU
+		{039E51EA-3D74-4E70-A150-0EA3F3A6759D}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

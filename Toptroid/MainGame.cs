@@ -131,10 +131,18 @@ namespace Toptroid
         }
 
         Vector2 reticle;
+        GamePadState lastState;
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.B == ButtonState.Pressed && lastState.Buttons.B == ButtonState.Released)
+            {
+                cam.ShakeScreen(10f, TimeSpan.FromSeconds(10));
+            }
+            lastState = GamePad.GetState(PlayerIndex.One);
+
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             // TODO: Add your update logic here
@@ -216,7 +224,8 @@ namespace Toptroid
                 }
             }
 
-            cam.Move(Position, Velocity);
+            // todo: figure out a good tolerance to stop the jittering
+            cam.Move(Position, Velocity, 2f, 1.8f, 0.275f);
             //Position = Physics.Resolve(Position, dir, speed, mask);
 
 

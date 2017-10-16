@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using NifuuLib.Camera;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Toptroid
 {
@@ -39,7 +41,7 @@ namespace Toptroid
 
         int reticleLength = 100;
 
-        Vector2 Position = new Vector2(150, 200);
+        Vector2 Position = new Vector2(60, 60);
 
         public MainGame()
         {
@@ -115,8 +117,10 @@ namespace Toptroid
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         /// 
 
-        public bool playerCollides(Vector2 position, int radius)
+        public bool playerCollides(Vector2 position, int radius, out Vector2 point)
         {
+            List<Vector2> points = new List<Vector2>();
+
             for (int x = (int)position.X - radius; x < (int)position.X + radius; x++)
             {
                 for (int y = (int)position.Y - radius; y < (int)position.Y + radius; y++)
@@ -124,14 +128,43 @@ namespace Toptroid
                     float distance = Vector2.Distance(position, new Vector2(x, y));
                     if (distance > radius) continue;
 
-                    if (mask[x, y]) return true;
+                    if (mask[x, y])
+                    {
+                        points.Add(new Vector2(x, y));
+                    }
                 }
             }
-            return false;
+            if (points.Count > 0)
+            {
+                points.Sort((a, b) =>
+                {
+                    float distA = Vector2.Distance(position, a);
+                    float distB = Vector2.Distance(position, b);
+                    if (distA < distB)
+                    {
+                        return -1;
+                    }
+                    else if (distA > distB)
+                    {
+                        return 1;
+                    } else
+                    {
+                        return 0;
+                    }
+                });
+                point = points.First();
+                return true;
+            }
+            else
+            {
+                point = position;
+                return false;
+            }
         }
 
         Vector2 reticle;
         GamePadState lastState;
+        int playerRadius = 8;
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -141,6 +174,32 @@ namespace Toptroid
             {
                 cam.ShakeScreen(10f, TimeSpan.FromSeconds(10));
             }
+
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Start == ButtonState.Pressed && lastState.Buttons.Start == ButtonState.Released)
+            {
+                graphics.IsFullScreen = !graphics.IsFullScreen;
+                if (graphics.IsFullScreen)
+                {
+                    graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                    graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                }
+                graphics.ApplyChanges();
+            }
+
+            if (GamePad.GetState(PlayerIndex.One).Triggers.Right > 0.8f && lastState.Triggers.Right < 0.8f)
+            {
+                if (playerRadius == 8)
+                    playerRadius = 3;
+                else
+                {
+                    if (!playerCollides(Position, 8, out _))
+                    {
+                        playerRadius = 8;
+                    }
+                }
+            }
+
             lastState = GamePad.GetState(PlayerIndex.One);
 
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -178,37 +237,15 @@ namespace Toptroid
 
             Vector2 Velocity = dir * speed;
 
-            if (!playerCollides(Position + Velocity, 8)) // mask[(int)(Position.X + Velocity.X), (int)(Position.Y + Velocity.Y)])
+            if (!playerCollides(Position + Velocity, playerRadius, out _)) // mask[(int)(Position.X + Velocity.X), (int)(Position.Y + Velocity.Y)])
             {
                 Position += Velocity;
-            } else
+            }
+            else
             {
-                // first, try to warp around if possible...
-                float deadzone = 0.75f;
-                if (Velocity.X > -deadzone && Velocity.X < deadzone)
-                {
-                    if (playerCollides(Position + new Vector2(1, 0), 8)) {
-                        Velocity.X = -deadzone * 2;
-                    }
-                    if (playerCollides(Position - new Vector2(1, 0), 8)) {
-                        Velocity.X = deadzone * 2;
-                    }
-                }
-                if (Velocity.Y > -deadzone && Velocity.Y < deadzone)
-                {
-                    if (playerCollides(Position + new Vector2(0, 1), 8))
-                    {
-                        Velocity.Y = -deadzone * 2;
-                    }
-                    if (playerCollides(Position - new Vector2(0, 1), 8))
-                    {
-                        Velocity.Y = deadzone * 2;
-                    }
-                }
-
                 for (int i = 0; i < Math.Abs(Velocity.X); i++)
                 {
-                    if (playerCollides(Position + new Vector2(Math.Sign(Velocity.X), 0), 8))
+                    if (playerCollides(Position + new Vector2(Math.Sign(Velocity.X), 0), playerRadius, out _))
                     {
                         break;
                     }
@@ -216,12 +253,49 @@ namespace Toptroid
                 }
                 for (int i = 0; i < Math.Abs(Velocity.Y); i++)
                 {
-                    if (playerCollides(Position + new Vector2(0, Math.Sign(Velocity.Y)), 8))
+                    if (playerCollides(Position + new Vector2(0, Math.Sign(Velocity.Y)), playerRadius, out _))
                     {
                         break;
                     }
                     Position.Y += Math.Sign(Velocity.Y);
                 }
+                
+                // try to warp around if possible...
+                Vector2 newPosition = (Position + Velocity);
+                Vector2 colPoint;
+                if (playerCollides(Position + Velocity, playerRadius, out colPoint) && dir != Vector2.Zero)
+                {
+                    // todo: figure out bouncing issue
+                    Vector2 wallNormal = new Vector2((int)(colPoint.X - newPosition.X), (int)(colPoint.Y - newPosition.Y));
+                    wallNormal.Normalize();
+
+                    Vector2 undesiredMotion = wallNormal * Vector2.Dot(Velocity, wallNormal);
+                    Vector2 desiredMotion = Velocity - undesiredMotion;
+                    //desiredMotion.Normalize();
+
+                    if (!(wallNormal.X == 0 || wallNormal.Y == 0))
+                    {
+                        //System.Diagnostics.Debug.Print(wallNormal.ToString());
+
+                        for (int i = 0; i < Math.Abs(desiredMotion.X); i++)
+                        {
+                            if (playerCollides(Position + new Vector2(Math.Sign(desiredMotion.X), 0), playerRadius, out _))
+                            {
+                                break;
+                            }
+                            Position.X += Math.Sign(desiredMotion.X);
+                        }
+                        for (int i = 0; i < Math.Abs(desiredMotion.Y); i++)
+                        {
+                            if (playerCollides(Position + new Vector2(0, Math.Sign(desiredMotion.Y)), playerRadius, out _))
+                            {
+                                break;
+                            }
+                            Position.Y += Math.Sign(desiredMotion.Y);
+                        }
+                    }
+                }
+
             }
 
             // todo: figure out a good tolerance to stop the jittering
@@ -341,9 +415,9 @@ namespace Toptroid
             float reticleAlpha = (Math.Min(Vector2.Distance(Position, reticle), 50) / 50);
             if (reticleAlpha < 0.35f)
                 reticleAlpha = 0;
-            spriteBatch.Draw(reticleTex, reticle, new Rectangle(0, 0, 32, 32), Color.White * reticleAlpha, 0, new Vector2(16, 16), 1f, SpriteEffects.None, 1f);
+            spriteBatch.Draw(reticleTex, reticle, new Rectangle(0, 0, 32, 32), Color.White, 0, new Vector2(16, 16), reticleAlpha, SpriteEffects.None, 1f);
 
-            spriteBatch.Draw(viewableArea, new Vector2(Position.X - 128, Position.Y - 112), Color.White);
+            spriteBatch.Draw(viewableArea, cam.ScreenToWorld(Vector2.Zero), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);

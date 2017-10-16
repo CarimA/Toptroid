@@ -63,6 +63,13 @@ namespace NifuuLib.Camera
             base.Update(gameTime);
         }
 
+        public Vector2 ScreenToWorld(Vector2 screenPosition)
+        {
+            // todo: transformnormal for worldtoscreen
+            var matrix = Matrix.Invert(GetTransform(GraphicsDevice.GraphicsDevice));
+            return Vector2.Transform(screenPosition, matrix) + new Vector2(((GraphicsDevice.PreferredBackBufferWidth / Scale) / 2) - (gameWidth / 2), ((GraphicsDevice.PreferredBackBufferHeight / Scale) / 2) - (gameHeight / 2));
+        }
+        
         public void ShakeScreen(float intensity, TimeSpan time)
         {
             shakeIntensity += intensity;
